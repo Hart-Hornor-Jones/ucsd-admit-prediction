@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Predicting UC San Diego admission rates from public school data</title>
+<script>/*__D3__*/</script>
+<style>
+:root{
+  --surface:#fcfcfb; --page:#f9f9f7; --ink:#0b0b0b; --ink2:#52514e; --mut:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --blue:#2a78d6; --aqua:#1baf7a;
+  --border:rgba(11,11,11,0.10);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;}
+.page{max-width:1440px;margin:0 auto;padding:18px 22px 40px}
+.bigtitle{font-size:21px;font-weight:650;margin:0 0 4px}
+.subtitle{color:var(--ink2);font-size:13.5px;margin:0 0 10px;max-width:1100px}
+a{color:var(--ink2)}
+.topbar{display:flex;align-items:center;gap:8px;margin:0 0 14px;flex-wrap:wrap}
+.ctlbtn{font:inherit;font-size:12px;padding:4px 11px;border:1px solid var(--axis);background:#fff;border-radius:14px;cursor:pointer;color:var(--ink2);white-space:nowrap}
+.ctlbtn:hover{border-color:var(--ink2);color:var(--ink)}
+.menuwrap{position:relative}
+.menu{display:none;position:absolute;left:0;top:32px;min-width:260px;max-width:420px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.08);padding:5px 0;z-index:20}
+.menu.right{left:auto;right:0}
+.menu.open{display:block}
+.menu button{display:block;width:100%;font:inherit;font-size:12.5px;text-align:left;border:0;background:none;padding:5px 12px 5px 28px;cursor:pointer;color:var(--ink);position:relative}
+.menu button small{display:block;font-size:11px;color:var(--mut)}
+.menu button:hover{background:#f1f0ec}
+.menu button.on::before{content:"\2713";position:absolute;left:11px;color:var(--ink2)}
+.menu .hd{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:6px 12px 2px;color:var(--mut)}
+.menu .sep{border-top:1px solid var(--grid);margin:4px 0}
+input[type=text]{font:inherit;font-size:12.5px;border:1px solid var(--axis);border-radius:14px;background:#fff;color:var(--ink);padding:4px 11px;width:280px;max-width:100%}
+.layout>*,.panels>*{min-width:0}
+#tablescol{grid-column:2 / 4;grid-row:2}
+#varbox{grid-row:1 / span 2}
+.layout{grid-template-rows:auto 1fr}
+#tablescol .sec:first-child{margin-top:0}
+.layout{display:grid;grid-template-columns:268px minmax(0,1fr) 300px;gap:14px;align-items:start}
+.box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px}
+.box h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)}
+.vgroup{margin:8px 0 2px;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+label.v{display:flex;align-items:center;gap:7px;padding:4px 2px;font-size:13px;cursor:pointer;border-radius:4px;line-height:1.3}
+label.v:hover{background:#f1f0ec}
+label.v.off{color:var(--mut);cursor:default}
+label.v input{accent-color:var(--blue);width:15px;height:15px;flex:none;margin:0}
+.hint{margin-left:auto;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums;flex:none}
+.hint.big{color:var(--ink);font-weight:650}
+.presets{display:flex;flex-wrap:wrap;gap:5px;margin:2px 0 4px}
+.presets button{font:inherit;font-size:11.5px;padding:4px 9px;border:1px solid var(--axis);background:#fff;border-radius:12px;cursor:pointer;color:var(--ink2)}
+.presets button:hover{border-color:var(--ink2);color:var(--ink)}
+.note{font-size:11.5px;color:var(--mut);margin-top:6px;line-height:1.45}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px}
+.phead{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:4px}
+.ptitle{font-size:14px;font-weight:600}
+.stats{font-size:12.5px;color:var(--ink2);margin:2px 0 4px;font-variant-numeric:tabular-nums;min-height:38px}
+.stats b{color:var(--ink);font-size:14px}
+svg.plot{display:block;width:100%;height:auto;touch-action:none}
+.dot{cursor:pointer}
+.zoomnote{font-size:10.5px;color:var(--mut)}
+.zreset{font-size:10.5px;border:1px solid var(--axis);background:#fff;border-radius:10px;padding:1px 8px;cursor:pointer;color:var(--ink2);display:none;margin-left:8px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--ink2);margin:10px 0 0}
+.legend span.k{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%}
+.sec{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:14px}
+.sec h2{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);font-weight:600}
+.sec .figsub{font-size:12px;color:var(--ink2);margin:0 0 8px;line-height:1.45}
+table.nums{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums}
+table.nums th{text-align:right;color:var(--ink2);font-weight:600;padding:3px 6px;border-bottom:1px solid var(--axis);vertical-align:bottom}
+table.nums td{padding:2.5px 6px;text-align:right;border-bottom:1px solid var(--grid)}
+table.nums th:first-child,table.nums td:first-child{text-align:left}
+table.nums td:first-child{color:var(--ink2)}
+table.nums td .se{color:var(--mut)}
+table.nums tr.tot td{font-weight:650;color:var(--ink)}
+table.nums td.sw{white-space:nowrap}
+.school h4{margin:0 0 2px;font-size:14px}
+.school .meta{color:var(--mut);font-size:12px;margin-bottom:6px}
+.school table{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums}
+.school td{padding:2px 4px;border-bottom:1px solid var(--grid)}
+.school td:nth-child(2){color:var(--mut)}
+.school td:last-child{text-align:right}
+.big3{display:flex;gap:10px;margin:6px 0 8px}
+.big3 div{flex:1;background:#f4f3ef;border-radius:6px;padding:5px 8px}
+.big3 .k{font-size:10.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.big3 .n{font-size:16px;font-weight:650;font-variant-numeric:tabular-nums}
+.empty{color:var(--mut);font-size:12.5px}
+details.defs{margin:0 0 14px;max-width:1100px}
+details.defs summary{cursor:pointer;color:var(--ink2);font-size:13px;font-weight:600}
+details.defs .body{font-size:12.5px;color:var(--ink2);margin-top:6px}
+details.defs p{margin:0 0 6px}
+.footer{color:var(--mut);font-size:11.5px;margin-top:16px;max-width:1200px}
+#tip{position:fixed;display:none;pointer-events:none;background:var(--ink);color:#fff;font-size:12px;padding:4px 8px;border-radius:5px;z-index:50;max-width:280px}
+.exportnote{font-size:10.5px;color:var(--mut)}
+@media (max-width:1100px){ .layout{grid-template-columns:1fr;grid-template-rows:none} #plotscol{order:1} #tablescol{order:2;grid-column:auto} #varbox{order:3;grid-row:auto} #schoolbox{order:4} #tablescol{grid-row:auto} }
+@media (max-width:760px){ .panels{grid-template-columns:1fr} .page{padding:12px 16px 30px} }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bigtitle">Predicting UC San Diego admission rates from public school data</div>
+  <div class="subtitle">Each dot is a California public high school. Its height is the share of the school's UC San Diego
+  applicants who were admitted, pooled over the years shown; its horizontal position is the share predicted by a statistical
+  model that uses only public statistics about the school. Choose the model's variables on the left. By default the model is
+  fitted to schools outside San Diego and Imperial counties and then applied to the schools inside them, which are colored.
+  Click a dot for the school and the arithmetic of its prediction. Scroll or pinch on a chart to zoom; double-click to reset.</div>
+
+  <details class="defs"><summary>Definitions, method, and how to read the numbers</summary><div class="body">
+    <p><b>Periods.</b> Entering classes of fall 2015–17, fall 2018–21 and fall 2022–25. A school's admission rate pools the
+    years in its period. The University masks small counts (fewer than 5 applicants or 3 admits); rates use only years in
+    which both the applicant and admit counts are published, and a school is left out when most of its applicants fall in
+    masked years. Schools need at least 30 such applicants in the period.</p>
+    <p><b>Fitting.</b> “Linear” is weighted least squares on the admission rate in percentage points. “Logistic” models the
+    log-odds of admission, so predictions stay between 0 and 100%. Both weight each school by its applicants. Variables
+    are standardized before fitting (each is expressed as standard deviations from the applicant-weighted average school in
+    the fitting sample), so coefficients are comparable across variables. Indicator variables (charter, LCFF+, and the San Diego and Imperial County indicators) are left as 0 or 1, so their coefficients are differences between schools with and without the attribute. Linear coefficients are percentage points of
+    admission rate per standard deviation; logistic coefficients are log-odds per standard deviation (near a 25% admission
+    rate, 0.1 in log-odds is about 2 percentage points). Standard errors are in parentheses; for the logistic model they
+    allow for school-level variation beyond binomial chance.</p>
+    <p><b>Fit model to.</b> “Schools outside San Diego and Imperial counties” estimates the model without the colored schools
+    and then predicts them, so their actual-minus-predicted values are out-of-sample comparisons with similar schools
+    elsewhere in California. “All schools” includes them; the indicators for San Diego and Imperial County schools can then
+    be added to the model, and their coefficients estimate the same differences directly.</p>
+    <p><b>R² and typical miss.</b> R² is the share of applicant-weighted school-to-school variation in admission rates that
+    the model reproduces in the fitting sample; adjusted R² penalizes the number of variables. Typical miss is the
+    applicant-weighted root-mean-square prediction error, in percentage points.</p>
+    <p><b>Actual minus predicted.</b> For a group of schools: the group's admits divided by its applicants, minus the
+    applicant-weighted average of the predicted rates. “Admits above prediction” is the difference times the group's
+    applicants. The standard error combines school-level scatter around the model (estimated from the fitting sample) and
+    uncertainty in the fitted coefficients.</p>
+    <p><b>Groups.</b> Schools in San Diego and Imperial counties, split into the Sweetwater Union High School District; the
+    San Diego Unified School District; Imperial County; the Poway Unified, San Dieguito Union High and Carlsbad Unified
+    districts; and all other San Diego County public high schools (other districts and charter schools).</p>
+    <p><b>Variables.</b> <b>CAASPP</b>: share of grade-11 students meeting the state standard, from the spring before each
+    entering class (no test in spring 2020; spring 2021 omitted for low participation). <b>A–G completion</b>: share of the
+    graduating class completing the course sequence required for UC and CSU eligibility. <b>UPP</b> (unduplicated pupil
+    percentage): share of students who are low-income, English learners or foster youth; the <b>LCFF+ flag</b> marks UPP
+    above 75%. <b>SED</b> and <b>EL</b>: shares of students classified socioeconomically disadvantaged or English learners.
+    School racial composition is from state enrollment counts, grades 9–12 (“Asian” includes Filipino). Neighborhood
+    variables describe the school's census tract (American Community Survey 5-year estimates). <b>Applicant GPA</b>: mean
+    UC-calculated GPA of the school's UC San Diego applicants. <b>GPA curvature</b> adds squared and cubed GPA terms.
+    <b>UC San Diego applicants' GPA relative to all UC applicants</b>: that GPA minus the mean GPA of the school's applicants to
+    any UC campus. <b>Applicants per 100 A–G completers</b> and <b>UC San Diego share of the school's UC applicants</b> describe
+    how deeply a school applies. <b>Admission rate at the other UC campuses</b>: the school's admits divided by applications
+    at the other campuses, same years. <b>Past 6-year graduation</b>: UC graduation of the school's students entering
+    2004–10. <b>Past yield</b>: share of the school's UC San Diego admits who enrolled, in the five years before the period.
+    <b>Pool-GPA inflation</b>: rise in a school's applicant-pool GPA from 2016 to 2025 beyond what its change in CAASPP
+    results predicts. <b>Distance</b>: straight-line distance to the campus on a log scale (1 = 10 km, 2 = 100 km).</p>
+  </div></details>
+
+  <div class="topbar">
+    <div class="menuwrap"><button class="ctlbtn" id="btnView">View &#9662;</button><div class="menu" id="menuView"></div></div>
+    <div class="menuwrap"><button class="ctlbtn" id="btnFit">Fit model to &#9662;</button><div class="menu" id="menuFit"></div></div>
+    <div class="menuwrap"><button class="ctlbtn" id="btnModel">Model &#9662;</button><div class="menu" id="menuModel"></div></div>
+    <div class="menuwrap"><button class="ctlbtn" id="btnColor">Dots &#9662;</button><div class="menu" id="menuColor"></div></div>
+    <div class="menuwrap"><input type="text" id="find" list="schoollist" placeholder="Find a school (type a name)"><datalist id="schoollist"></datalist></div>
+  </div>
+
+  <div class="layout">
+    <div class="box" id="varbox">
+      <h3>Model variables</h3>
+      <div class="presets" id="presets"></div>
+      <div id="varlist"></div>
+      <div class="note">Number at right: gain in R² if the variable is added to the left chart's model.</div>
+    </div>
+
+    <div id="plotscol">
+      <div class="panels">
+        <div class="panel" id="panelA"></div>
+        <div class="panel" id="panelB"></div>
+      </div>
+      <div class="legend" id="legend"></div>
+
+    </div>
+
+    <div class="box school" id="schoolbox">
+      <h3>School</h3>
+      <div class="empty">Click a dot in either chart, or find a school by name above.</div>
+    </div>
+    <div id="tablescol">
+      <div class="sec">
+        <h2>Actual minus predicted, by group of schools</h2>
+        <div class="figsub" id="grpsub"></div>
+        <div style="overflow-x:auto"><div id="grptable"></div></div>
+      </div>
+
+      <div class="sec">
+        <h2 id="coefhead">Fitted coefficients</h2>
+        <div class="figsub" id="coefsub"></div>
+        <div style="overflow-x:auto"><div id="coeftable"></div></div>
+        <div class="note">When selected variables are strongly correlated (student poverty and socioeconomic disadvantage
+        correlate at about 0.99), the fit can split one effect between them arbitrarily, even with opposite signs, without
+        changing the predictions. Judge such a variable by what it adds to R², not by its coefficient.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Sources: University of California Information Center, admissions by source school (freshman applicants
+  from California public high schools); California Department of Education CAASPP research files, A–G completion, enrollment,
+  LCFF and school directory files; U.S. Census Bureau American Community Survey. All calculations run in your browser.
+  Data behind the page: <a href="data/">data folder</a>.</div>
+</div>
+<div id="tip"></div>
+
+<script id="pagedata" type="application/json">/*__DATA__*/</script>
+<script>
+(function(){
+const DATA=JSON.parse(document.getElementById('pagedata').textContent);
+const COLS=DATA.cols, CI=Object.fromEntries(COLS.map((c,i)=>[c,i]));
+const GNAMES=DATA.groups, GCOL=['#e34948','#2a78d6','#1baf7a','#eb6834','#8a5cd6','#c9c8c1'];
+const GSHORT=['Sweetwater Union','San Diego Unified','Imperial County','Poway, San Dieguito, Carlsbad','Other San Diego County','Rest of California'];
+const ERAKEYS=['base','surge','recent'];
+// variable metadata: [label, group]
+const VMETA={
+  ela:['CAASPP English, % met (gr 11)','Achievement'], math:['CAASPP math, % met (gr 11)','Achievement'],
+  agcomp:['A–G completion %','Achievement'],
+  upp:['Student poverty, UPP %','Student body'], sed:['Socioeconomically disadvantaged %','Student body'],
+  el:['English learners %','Student body'], lcffd:['LCFF+ flag (UPP above 75%)','Student body'],
+  s_hisp:['Hispanic/Latino students %','Student body'], s_white:['White students %','Student body'],
+  s_asian:['Asian or Filipino students %','Student body'], s_black:['Black students %','Student body'],
+  charter:['Charter school (1 = yes)','Student body'],
+  inc:['Median household income ($1,000s)','Neighborhood (census tract)'], ba:['Adults with bachelor’s degree %','Neighborhood (census tract)'],
+  pov:['Poverty rate %','Neighborhood (census tract)'], homeval:['Median home value ($1,000s)','Neighborhood (census tract)'],
+  appgpa:['Applicant GPA (UC San Diego applicants)','Applicant pool'],
+  gpacurve:['GPA curvature (squared and cubed terms)','Applicant pool'],
+  gpa_gap:['UC San Diego applicants’ GPA relative to all UC applicants','Applicant pool'],
+  apprate:['Applicants per 100 A–G completers','Applicant pool'],
+  ucsd_share:['UC San Diego share of the school’s UC applicants %','Applicant pool'],
+  logA:['Applicants per year (log scale)','Applicant pool'], H:['Enrollment, grades 9–12','Applicant pool'],
+  oth_rate:['Admission rate at the other UC campuses %','Other campuses and history'],
+  o_grad6:['Past 6-year UC graduation %','Other campuses and history'],
+  o_yield:['Past yield at UC San Diego %','Other campuses and history'],
+  infl:['Pool-GPA inflation, 2016→2025','Other campuses and history'],
+  dist:['Distance to campus (log₁₀ km)','Geography'],
+  local:['San Diego or Imperial County school (1 = yes)','Geography'],
+  groups:['Five San Diego and Imperial County groups (indicators)','Geography']
+};
+const VARS=['ela','math','agcomp','upp','sed','el','lcffd','s_hisp','s_white','s_asian','s_black','charter',
+  'inc','ba','pov','homeval','appgpa','gpacurve','gpa_gap','apprate','ucsd_share','logA','H',
+  'oth_rate','o_grad6','o_yield','infl','dist','local','groups'];
+const GROUPS=['Applicant pool','Achievement','Student body','Neighborhood (census tract)','Other campuses and history','Geography'];
+const INAREA=new Set(['local','groups']);
+const BINS=new Set(['lcffd','charter','local']);
+const NOGEO=VARS.filter(v=>!INAREA.has(v)&&v!=='dist');
+const PRESETS=[
+  ['GPA only',['appgpa']],
+  ['GPA, curved',['appgpa','gpacurve']],
+  ['GPA + other campuses',['appgpa','oth_rate']],
+  ['GPA + school context',['appgpa','math','ela','sed','s_hisp','s_asian','s_black']],
+  ['GPA + applicant pool',['appgpa','gpa_gap','ucsd_share','apprate','logA']],
+  ['All but geography',NOGEO.filter(v=>v!=='o_yield'&&v!=='infl'&&v!=='o_grad6')]
+];
+const state={sel:new Set(['appgpa']), model:'lin', fitOn:'out', view:'pred', color:'grp',
+  A:{era:'surge'}, B:{era:'recent'}, pick:null};
+
+// ---------- design matrix ----------
+function specs(vars){
+  const out=[];
+  vars.forEach(v=>{
+    if(v==='gpacurve'){
+      out.push({key:'gpa2',label:'Applicant GPA, squared term',get:r=>r[CI.appgpa]==null?null:(r[CI.appgpa]-3.9)**2});
+      out.push({key:'gpa3',label:'Applicant GPA, cubed term',get:r=>r[CI.appgpa]==null?null:(r[CI.appgpa]-3.9)**3});
+    } else if(v==='groups'){
+      for(let g=0;g<5;g++) out.push({key:'g'+g,label:GNAMES[g],bin:true,get:r=>r[CI.grp]===g?1:0});
+    } else out.push({key:v,label:VMETA[v][0],bin:BINS.has(v),get:r=>r[CI[v]]});
+  });
+  return out;
+}
+function solve(M,v){
+  const n=v.length, A=M.map((r,i)=>r.concat([v[i]]));
+  for(let c=0;c<n;c++){
+    let p=c; for(let r=c+1;r<n;r++) if(Math.abs(A[r][c])>Math.abs(A[p][c])) p=r;
+    if(Math.abs(A[p][c])<1e-12) return null;
+    [A[c],A[p]]=[A[p],A[c]];
+    for(let r=0;r<n;r++){ if(r===c) continue; const f=A[r][c]/A[c][c]; for(let k=c;k<=n;k++) A[r][k]-=f*A[c][k]; }
+  }
+  return A.map((r,i)=>r[n]/A[i][i]);
+}
+function inverse(M){
+  const n=M.length,out=[];
+  for(let j=0;j<n;j++){ const e=Array(n).fill(0); e[j]=1; const col=solve(M.map(r=>r.slice()),e); if(!col) return null;
+    for(let i=0;i<n;i++){ (out[i]=out[i]||[])[j]=col[i]; } }
+  return out;
+}
+const sig=x=>1/(1+Math.exp(-x));
+// fit(rows, vars) -> predictions for every complete row; estimation on the fitting sample
+function fit(rows, vars, opt){
+  opt=opt||{};
+  const S=specs(vars), k=S.length, p=k+1;
+  const fitOn=opt.fitOn||state.fitOn, model=opt.model||state.model;
+  const comp=rows.filter(r=>S.every(s=>s.get(r)!=null));
+  const est=comp.filter(r=>fitOn==='all'||r[CI.grp]===5);
+  const n=est.length;
+  if(n<k+5) return {ok:false,n};
+  const w=est.map(r=>r[CI.A]), W=d3.sum(w);
+  const mom=S.map(s=>{ const x=est.map(s.get);
+    if(s.bin){ const m=d3.sum(x.map((xi,i)=>xi*w[i]))/W; return {m:0,s:(m>0&&m<1)?1:0,bin:true}; } const m=d3.sum(x.map((xi,i)=>xi*w[i]))/W;
+    const sd=Math.sqrt(d3.sum(x.map((xi,i)=>w[i]*(xi-m)**2))/W); return {m,s:sd>1e-9?sd:0}; });
+  if(mom.some(m=>m.s===0)) return {ok:false,n,why:'A selected variable does not vary among the schools used for fitting.'};
+  const row=r=>[1,...S.map((s,j)=>(s.get(r)-mom[j].m)/mom[j].s)];
+  const X=est.map(row);
+  const yr=est.map(r=>r[CI.adm]);
+  let beta, cov, xtwx;
+  const XtWX=(wt)=>{ const M=Array.from({length:p},()=>Array(p).fill(0));
+    for(let i=0;i<n;i++){ const xi=X[i]; for(let a=0;a<p;a++) for(let b=a;b<p;b++) M[a][b]+=wt[i]*xi[a]*xi[b]; }
+    for(let a=0;a<p;a++) for(let b=0;b<a;b++) M[a][b]=M[b][a]; return M; };
+  let sigma2=null, phi=null;
+  if(model==='lin'){
+    xtwx=XtWX(w); const XtWy=Array(p).fill(0);
+    for(let i=0;i<n;i++) for(let a=0;a<p;a++) XtWy[a]+=w[i]*X[i][a]*yr[i];
+    beta=solve(xtwx.map(r=>r.slice()),XtWy); if(!beta) return {ok:false,n,why:'Selected variables are exact duplicates of one another.'};
+    const pr=X.map(xi=>d3.sum(xi.map((x,j)=>x*beta[j])));
+    sigma2=d3.sum(yr.map((y,i)=>w[i]*(y-pr[i])**2))/(n-p);   // per-applicant variance (pp^2)
+    const inv=inverse(xtwx); cov=inv?inv.map(r=>r.map(x=>x*sigma2)):null;
+  } else {
+    const K=est.map(r=>r[CI.K]); const Kt=d3.sum(K);
+    beta=Array(p).fill(0); beta[0]=Math.log(Kt/(W-Kt));
+    for(let it=0;it<40;it++){
+      const eta=X.map(xi=>d3.sum(xi.map((x,j)=>x*beta[j])));
+      const mu=eta.map(sig); const wt=mu.map((m,i)=>Math.max(w[i]*m*(1-m),1e-9));
+      const z=eta.map((e,i)=>e+(K[i]-w[i]*mu[i])/wt[i]);
+      const M=XtWX(wt); const v=Array(p).fill(0);
+      for(let i=0;i<n;i++) for(let a=0;a<p;a++) v[a]+=wt[i]*X[i][a]*z[i];
+      const nb=solve(M.map(r=>r.slice()),v); if(!nb) return {ok:false,n,why:'Selected variables are exact duplicates of one another.'};
+      const d=d3.max(nb.map((b,j)=>Math.abs(b-beta[j]))); beta=nb; xtwx=M; if(d<1e-8) break;
+    }
+    const mu=X.map(xi=>sig(d3.sum(xi.map((x,j)=>x*beta[j]))));
+    phi=d3.sum(est.map((r,i)=>((r[CI.K]-w[i]*mu[i])**2)/(w[i]*mu[i]*(1-mu[i]))))/(n-p);
+    const wt=mu.map((m,i)=>w[i]*m*(1-m)); xtwx=XtWX(wt);
+    const inv=inverse(xtwx); cov=inv?inv.map(r=>r.map(x=>x*Math.max(phi,1))):null;
+  }
+  const predOf=r=>{ const x=row(r), e=d3.sum(x.map((v,j)=>v*beta[j])); return model==='lin'?e:100*sig(e); };
+  const pall=comp.map(predOf);
+  const pe=est.map(predOf);
+  const ybar=d3.sum(yr.map((y,i)=>y*w[i]))/W;
+  const sse=d3.sum(yr.map((y,i)=>w[i]*(y-pe[i])**2)), sst=d3.sum(yr.map((y,i)=>w[i]*(y-ybar)**2));
+  const r2=1-sse/sst, adj=1-(1-r2)*(n-1)/(n-k-1), rmse=Math.sqrt(sse/W);
+  const se=cov?cov.map((r,i)=>Math.sqrt(Math.max(0,r[i]))):beta.map(()=>NaN);
+  return {ok:true,n,k,S,beta,se,cov,r2,adj,rmse,use:comp,pred:pall,mom,row,model,fitOn,sigma2,phi,vars};
+}
+
+// group summary: actual minus predicted with standard error
+function groupSummary(F){
+  const out=[];
+  const sets=[0,1,2,3,4,'loc',5];
+  sets.forEach(g=>{
+    const idx=[]; F.use.forEach((r,i)=>{ const gg=r[CI.grp]; if(g==='loc'?gg<5:gg===g) idx.push(i); });
+    if(!idx.length){ out.push({g,n:0}); return; }
+    const A=d3.sum(idx,i=>F.use[i][CI.A]), K=d3.sum(idx,i=>F.use[i][CI.K]);
+    const act=100*K/A, pr=d3.sum(idx,i=>F.use[i][CI.A]*F.pred[i])/A, d=act-pr;
+    const p=F.beta.length; let v=0; const gv=Array(p).fill(0);
+    if(F.model==='lin'){
+      v=F.sigma2/A;
+      idx.forEach(i=>{ const x=F.row(F.use[i]); for(let a=0;a<p;a++) gv[a]+=F.use[i][CI.A]*x[a]/A; });
+    } else {
+      idx.forEach(i=>{ const m=F.pred[i]/100, a0=F.use[i][CI.A]; v+=Math.max(F.phi,1)*a0*m*(1-m);
+        const x=F.row(F.use[i]); for(let a=0;a<p;a++) gv[a]+=100*a0*m*(1-m)*x[a]/A; });
+      v=v/(A*A)*1e4;
+    }
+    let pv=0; if(F.cov) for(let a=0;a<p;a++) for(let b=0;b<p;b++) pv+=gv[a]*F.cov[a][b]*gv[b];
+    out.push({g,n:idx.length,A,K,act,pr,d,se:Math.sqrt(v+pv),extra:d*A/100});
+  });
+  return out;
+}
+
+// ---------- menus ----------
+function menu(btnId,menuId,items,key,onpick){
+  const btn=document.getElementById(btnId), m=document.getElementById(menuId);
+  function draw(){ m.innerHTML=''; items.forEach(it=>{
+      if(it.hd){ const h=document.createElement('div'); h.className='hd'; h.textContent=it.hd; m.appendChild(h); return; }
+      const b=document.createElement('button'); b.innerHTML=it.label+(it.small?`<small>${it.small}</small>`:'');
+      if(state[key]===it.v) b.classList.add('on');
+      b.onclick=(e)=>{ e.stopPropagation(); state[key]=it.v; m.classList.remove('open'); draw(); onpick&&onpick(); update(); };
+      m.appendChild(b); }); }
+  btn.onclick=(e)=>{ e.stopPropagation(); const o=m.classList.contains('open'); closeMenus(); if(!o) m.classList.add('open'); };
+  draw(); return draw;
+}
+function closeMenus(){ document.querySelectorAll('.menu.open').forEach(x=>x.classList.remove('open')); }
+document.addEventListener('click',closeMenus);
+menu('btnView','menuView',[
+  {v:'pred',label:'Actual against predicted rate'},
+  {v:'dist',label:'Actual minus predicted, by distance',small:'vertical: actual minus predicted rate; horizontal: distance to the campus'}],'view');
+menu('btnFit','menuFit',[
+  {v:'out',label:'Schools outside San Diego and Imperial counties',small:'the colored schools are predicted, not fitted'},
+  {v:'all',label:'All schools',small:'allows the San Diego and Imperial County indicators'}],'fitOn',()=>{
+    if(state.fitOn==='out'){ state.sel.delete('local'); state.sel.delete('groups'); syncChecks(); } });
+menu('btnModel','menuModel',[
+  {v:'lin',label:'Linear',small:'admission rate in percentage points'},
+  {v:'logit',label:'Logistic',small:'log-odds of admission; predictions stay between 0 and 100%'}],'model');
+menu('btnColor','menuColor',[
+  {v:'grp',label:'Colored by group'},
+  {v:'local',label:'San Diego and Imperial County schools in one color'}],'color');
+
+// ---------- variable list ----------
+const varlist=d3.select('#varlist');
+function syncChecks(){
+  varlist.selectAll('input').property('checked',function(){ return state.sel.has(this.dataset.v); });
+  varlist.selectAll('label.v').classed('off',function(){ const v=this.dataset.v; return state.fitOn==='out'&&INAREA.has(v); })
+    .select('input').property('disabled',function(){ return state.fitOn==='out'&&INAREA.has(this.dataset.v); });
+}
+GROUPS.forEach(g=>{
+  varlist.append('div').attr('class','vgroup').text(g);
+  VARS.filter(v=>VMETA[v][1]===g).forEach(v=>{
+    const lab=varlist.append('label').attr('class','v').attr('data-v',v)
+      .attr('title',INAREA.has(v)?'Available when the model is fitted to all schools':VMETA[v][0]);
+    lab.append('input').attr('type','checkbox').attr('data-v',v).on('change',function(){
+      if(this.checked){ state.sel.add(v);
+        if(v==='gpacurve') state.sel.add('appgpa');
+        if(v==='local') state.sel.delete('groups'); if(v==='groups') state.sel.delete('local');
+      } else { state.sel.delete(v); if(v==='appgpa') state.sel.delete('gpacurve'); }
+      syncChecks(); update(); });
+    lab.append('span').text(VMETA[v][0]);
+    lab.append('span').attr('class','hint').attr('id','hint-'+v);
+  });
+});
+d3.select('#presets').selectAll('button').data(PRESETS).join('button').text(d=>d[0])
+  .on('click',(ev,d)=>{ state.sel=new Set(d[1]); syncChecks(); update(); });
+
+// ---------- panels ----------
+const PW=470,PH=400,M={t:10,r:12,b:46,l:52};
+const tip=d3.select('#tip');
+function panelInit(id,which){
+  const div=d3.select('#'+id);
+  const head=div.append('div').attr('class','phead');
+  const left=head.append('div').style('display','flex').style('gap','8px').style('align-items','center');
+  left.append('span').attr('class','ptitle').text('UC San Diego,');
+  const ew=left.append('div').attr('class','menuwrap');
+  const eb=ew.append('button').attr('class','ctlbtn').attr('id','btnEra'+which);
+  const em=ew.append('div').attr('class','menu').attr('id','menuEra'+which);
+  const xw=head.append('div').attr('class','menuwrap');
+  xw.append('button').attr('class','ctlbtn').attr('id','btnExp'+which).html('Export &#9662;');
+  const xm=xw.append('div').attr('class','menu right').attr('id','menuExp'+which);
+  xm.html(`<div class="hd">Image</div><button data-x="png2">PNG at 2×<small>screen / web</small></button>
+    <button data-x="png4">PNG at 4×<small>print</small></button><button data-x="svg">SVG<small>vector; opens in Illustrator, Inkscape, Word</small></button>
+    <div class="sep"></div><div class="hd">Data</div><button data-x="csv">CSV of the plotted schools<small>actual and predicted rate for every dot</small></button>`);
+  const stat=div.append('div').attr('class','stats').attr('id','stats'+which);
+  const svg=div.append('svg').attr('class','plot').attr('viewBox',`0 0 ${PW} ${PH}`).attr('xmlns','http://www.w3.org/2000/svg');
+  svg.append('rect').attr('width',PW).attr('height',PH).attr('fill','#fff');
+  svg.append('clipPath').attr('id','clip'+which).append('rect').attr('x',M.l).attr('y',M.t).attr('width',PW-M.l-M.r).attr('height',PH-M.t-M.b);
+  const g=svg.append('g');
+  g.append('g').attr('class','grid');
+  const inner=g.append('g').attr('clip-path',`url(#clip${which})`);
+  inner.append('line').attr('class','ident').attr('stroke','#0b0b0b').attr('stroke-width',1.1).attr('stroke-dasharray','4 3');
+  inner.append('g').attr('class','dots');
+  g.append('g').attr('class','gx axis'); g.append('g').attr('class','gy axis');
+  const xt=svg.append('text').attr('x',(M.l+PW-M.r)/2).attr('y',PH-6).attr('text-anchor','middle').attr('font-size',11.5).attr('fill','#52514e').attr('font-family','system-ui,-apple-system,Segoe UI,sans-serif');
+  const yt=svg.append('text').attr('transform',`translate(13,${(M.t+PH-M.b)/2}) rotate(-90)`).attr('text-anchor','middle').attr('font-size',11.5).attr('fill','#52514e').attr('font-family','system-ui,-apple-system,Segoe UI,sans-serif');
+  const foot=div.append('div');
+  foot.append('span').attr('class','zoomnote').text('scroll / pinch to zoom · double-click to reset');
+  const zr=foot.append('button').attr('class','zreset').text('reset zoom');
+  foot.append('div').attr('class','exportnote').attr('id','xnote'+which);
+  const P={svg,g,which,z:d3.zoomIdentity,F:null,x:null,y:null,zr,xt,yt};
+  P.zoom=d3.zoom().scaleExtent([1,40]).on('zoom',ev=>{ P.z=ev.transform; render(P); });
+  svg.call(P.zoom).on('dblclick.zoom',()=>svg.transition().duration(200).call(P.zoom.transform,d3.zoomIdentity));
+  zr.on('click',()=>svg.transition().duration(200).call(P.zoom.transform,d3.zoomIdentity));
+  P.resetZoom=()=>{ P.z=d3.zoomIdentity; svg.call(P.zoom.transform,d3.zoomIdentity); };
+  menu('btnEra'+which,'menuEra'+which,ERAKEYS.map(k=>({v:k,label:DATA.eras[k]})),'_era'+which,()=>{ state[which].era=state['_era'+which]; P.resetZoom(); });
+  state['_era'+which]=state[which].era;
+  document.getElementById('menuEra'+which).querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',ERAKEYS[i]===state[which].era));
+  document.getElementById('btnExp'+which).onclick=(e)=>{ e.stopPropagation(); const o=xm.classed('open'); closeMenus(); if(!o) xm.classed('open',true); };
+  xm.selectAll('button').on('click',function(e){ e.stopPropagation(); closeMenus(); exportPanel(P,this.dataset.x); });
+  return P;
+}
+const PA=panelInit('panelA','A'), PB=panelInit('panelB','B');
+
+function colorOf(r){ const g=r[CI.grp]; if(g===5) return GCOL[5]; return state.color==='grp'?GCOL[g]:GCOL[0]; }
+function yval(d){ return state.view==='pred'?d.r[CI.adm]:d.r[CI.adm]-d.p; }
+function xval(d){ return state.view==='pred'?d.p:d.r[CI.dist]; }
+function render(P){
+  const F=P.F; if(!F||!F.ok) return;
+  const x=P.z.rescaleX(P.x), y=P.z.rescaleY(P.y);
+  const ax=(sel)=>{ sel.selectAll('path,line').attr('stroke','#c3c2b7').attr('stroke-width',1);
+    sel.selectAll('text').attr('font-size',10.5).attr('font-family','system-ui,-apple-system,Segoe UI,sans-serif').attr('font-weight',400).attr('fill','#898781'); };
+  P.g.select('.grid').selectAll('line').data(y.ticks(6)).join('line').attr('stroke','#e1e0d9').attr('stroke-width',0.7)
+    .attr('x1',M.l).attr('x2',PW-M.r).attr('y1',d=>y(d)).attr('y2',d=>y(d));
+  const xa=state.view==='pred'?d3.axisBottom(x).ticks(6).tickSize(3).tickSizeOuter(0)
+    :d3.axisBottom(x).tickValues([1,3,10,30,100,300,1000].map(Math.log10).filter(t=>t>=x.domain()[0]-1e-9&&t<=x.domain()[1])).tickFormat(t=>d3.format(',')(Math.round(10**t))).tickSize(3).tickSizeOuter(0);
+  P.g.select('.gx').attr('transform',`translate(0,${PH-M.b})`).call(xa).call(ax);
+  P.g.select('.gy').attr('transform',`translate(${M.l},0)`).call(d3.axisLeft(y).ticks(6).tickSize(3).tickSizeOuter(0)).call(ax);
+  if(state.view==='pred'){
+    const lo=Math.max(x.domain()[0],y.domain()[0]), hi=Math.min(x.domain()[1],y.domain()[1]);
+    P.g.select('.ident').attr('x1',x(lo)).attr('y1',y(lo)).attr('x2',x(hi)).attr('y2',y(hi));
+  } else {
+    P.g.select('.ident').attr('x1',x(x.domain()[0])).attr('x2',x(x.domain()[1])).attr('y1',y(0)).attr('y2',y(0));
+  }
+  P.g.select('.dots').selectAll('circle').attr('cx',d=>x(xval(d))).attr('cy',d=>y(yval(d)));
+  P.zr.style('display',P.z.k>1.02?'inline-block':'none');
+}
+function drawPanel(P,F){
+  P.F=F; const sid='#stats'+P.which;
+  const lab=DATA.eras[state[P.which].era];
+  d3.select('#btnEra'+P.which).html(lab+' &#9662;');
+  if(!F.ok){ d3.select(sid).html('<b>'+(F.why||'Too few schools have all the selected variables.')+'</b>');
+    P.g.select('.dots').selectAll('*').remove(); P.g.selectAll('.axis').selectAll('*').remove(); P.g.select('.ident').attr('x1',0).attr('x2',0); return; }
+  let D=F.use.map((r,i)=>({r,p:F.pred[i]}));
+  if(state.view==='dist') D=D.filter(d=>d.r[CI.dist]!=null);
+  D.sort((a,b)=>(b.r[CI.grp]-a.r[CI.grp])||(b.r[CI.A]-a.r[CI.A]));
+  if(state.view==='pred'){
+    const hi=Math.max(d3.max(D,d=>d.r[CI.adm]),d3.max(D,d=>d.p))*1.04;
+    P.x=d3.scaleLinear().domain([Math.min(0,d3.min(D,d=>d.p)),hi]).range([M.l,PW-M.r]);
+    P.y=d3.scaleLinear().domain([0,hi]).range([PH-M.b,M.t]);
+    P.xt.text('predicted admission rate (%)'); P.yt.text('actual admission rate (%)');
+  } else {
+    const ext=d3.extent(D,d=>d.r[CI.adm]-d.p), m=Math.max(Math.abs(ext[0]),Math.abs(ext[1]))*1.05;
+    P.x=d3.scaleLinear().domain([0,3.1]).range([M.l,PW-M.r]);
+    P.y=d3.scaleLinear().domain([-m,m]).range([PH-M.b,M.t]);
+    P.xt.text('distance to UC San Diego (km, log scale)'); P.yt.text('actual minus predicted (percentage points)');
+  }
+  const fitTxt=F.fitOn==='out'?'fitted to schools outside San Diego and Imperial counties':'fitted to all schools';
+  d3.select(sid).html(`<b>R² = ${F.r2.toFixed(3)}</b> &nbsp;adjusted ${F.adj.toFixed(3)} &nbsp;n = ${F.n.toLocaleString()} schools &nbsp;typical miss ${F.rmse.toFixed(1)} pp<br>${F.model==='lin'?'Linear':'Logistic'} model, ${fitTxt}; ${F.use.length.toLocaleString()} schools shown`);
+  const rad=d=>d.r[CI.grp]<5?Math.max(3.2,Math.min(9,Math.sqrt(d.r[CI.A])/2.6)):2.8;
+  P.g.select('.dots').selectAll('circle').data(D,d=>d.r[CI.ceeb]).join('circle').attr('class','dot')
+    .attr('r',rad).attr('fill',d=>colorOf(d.r)).attr('fill-opacity',d=>isPick(d)?1:(d.r[CI.grp]<5?0.8:0.55))
+    .attr('stroke',d=>isPick(d)?'#0b0b0b':(d.r[CI.grp]<5?'#fff':'none')).attr('stroke-width',d=>isPick(d)?1.8:0.8)
+    .on('mousemove',(ev,d)=>{ tip.style('display','block').style('left',(ev.clientX+14)+'px').style('top',(ev.clientY-10)+'px')
+      .html(`<b>${d.r[CI.name]}</b><br><span>${GNAMES[d.r[CI.grp]]}<br>actual ${d.r[CI.adm].toFixed(1)}% · predicted ${d.p.toFixed(1)}%<br>${d.r[CI.A].toLocaleString()} applicants</span>`); })
+    .on('mouseleave',()=>tip.style('display','none'))
+    .on('click',(ev,d)=>{ state.pick={ceeb:d.r[CI.ceeb],panel:P.which}; refreshPick(); });
+  P.g.select('.dots').selectAll('circle').filter(d=>isPick(d)).raise();
+  render(P);
+}
+function isPick(d){ return state.pick&&state.pick.ceeb===d.r[CI.ceeb]; }
+function refreshPick(){
+  [PA,PB].forEach(P=>{ P.g.select('.dots').selectAll('circle')
+    .attr('fill-opacity',d=>isPick(d)?1:(d.r[CI.grp]<5?0.8:0.55))
+    .attr('stroke',d=>isPick(d)?'#0b0b0b':(d.r[CI.grp]<5?'#fff':'none')).attr('stroke-width',d=>isPick(d)?1.8:0.8);
+    P.g.select('.dots').selectAll('circle').filter(d=>isPick(d)).raise(); });
+  schoolBox(PA.F,PB.F);
+}
+
+// ---------- legend ----------
+function legend(){
+  const L=d3.select('#legend'); L.html('');
+  const items=state.color==='grp'?[0,1,2,3,4,5].map(g=>[GCOL[g],GSHORT[g]]):[[GCOL[0],'San Diego and Imperial County schools'],[GCOL[5],'Rest of California']];
+  items.forEach(([c,t])=>L.append('span').attr('class','k').html(`<i style="background:${c}"></i>${t}`));
+  L.append('span').attr('class','k').style('color','var(--mut)').text(state.view==='pred'?'Dashed line: actual = predicted. Colored dots sized by applicants.':'Dashed line: zero difference. Colored dots sized by applicants.');
+}
+
+// ---------- tables ----------
+const fpp=(x,dp=1)=>x==null||!isFinite(x)?'—':(x>=0?'+':'')+x.toFixed(dp);
+function grpTable(FA,FB){
+  const eA=DATA.eras[state.A.era], eB=DATA.eras[state.B.era];
+  const fitTxt=state.fitOn==='out'?'The model is fitted to schools outside San Diego and Imperial counties, so the values for the five groups compare each group with similar schools elsewhere; the last row is near zero by construction.'
+    :'The model is fitted to all schools, so these values are in-sample residuals; if the San Diego or group indicators are in the model they absorb the differences, which then appear as coefficients below.';
+  d3.select('#grpsub').text('Difference = actual minus predicted, in percentage points of admission rate; standard errors in parentheses. '+fitTxt);
+  const S=[FA.ok?groupSummary(FA):null, FB.ok?groupSummary(FB):null];
+  let h=`<table class="nums"><tr><th rowspan="2"></th><th colspan="4" style="text-align:center">Left chart: ${eA}</th><th colspan="4" style="text-align:center">Right chart: ${eB}</th></tr>
+  <tr>${['schools','actual %','predicted %','difference','schools','actual %','predicted %','difference'].map(t=>`<th>${t}</th>`).join('')}</tr>`;
+  [0,1,2,3,4,'loc',5].forEach((g,gi)=>{
+    const name=g==='loc'?'All San Diego and Imperial County schools':GNAMES[g];
+    h+=`<tr class="${g==='loc'?'tot':''}"><td class="sw">${g==='loc'||g===5?'':`<i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${GCOL[g]};margin-right:6px"></i>`}${name}</td>`;
+    S.forEach(s=>{ const o=s&&s[gi];
+      if(!o||!o.n){ h+='<td>—</td><td></td><td></td><td></td>'; return; }
+      h+=`<td>${o.n}</td><td>${o.act.toFixed(1)}</td><td>${o.pr.toFixed(1)}</td><td class="sw">${fpp(o.d)} <span class="se">(${o.se.toFixed(1)})</span></td>`; });
+    h+='</tr>';
+  });
+  h+='</table>';
+  // admits row
+  h+=`<div class="note">Admits above prediction, all San Diego and Imperial County schools: ${S.map((s,i)=>{ if(!s) return '—'; const o=s[5];
+    return `${i?'right':'left'} chart ${o.extra>=0?'+':''}${Math.round(o.extra).toLocaleString()} of ${o.K.toLocaleString()} admits over ${DATA.eras[state[i?'B':'A'].era]} (${Math.round(o.extra/(state[i?'B':'A'].era==='base'?3:4)).toLocaleString()} a year)`; }).join('; ')}.</div>`;
+  d3.select('#grptable').html(h);
+}
+function coefTable(FA,FB){
+  const lin=state.model==='lin';
+  d3.select('#coefhead').text(lin?'Fitted coefficients: percentage points of admission rate per standard deviation':'Fitted coefficients: log-odds of admission per standard deviation');
+  const anyBin=(FA.ok?FA.S:(FB.ok?FB.S:[])).some(s=>s.bin);
+  d3.select('#coefsub').text(anyBin?'Indicator variables (marked 0 or 1) are not standardized: their coefficient is the difference between schools with and without the attribute, other variables held fixed.'+(lin?'':' In log-odds.'):'');
+  const S=(FA.ok?FA.S:(FB.ok?FB.S:[]));
+  const rows=S.map((s,j)=>({s,a:FA.ok?FA.beta[j+1]:null,ase:FA.ok?FA.se[j+1]:null,b:FB.ok?FB.beta[j+1]:null,bse:FB.ok?FB.se[j+1]:null}));
+  rows.sort((p,q)=>Math.abs(q.a??0)-Math.abs(p.a??0));
+  const dp=lin?2:3;
+  const f=(x,se)=>x==null?'—':`${fpp(x,dp)} <span class="se">(${se.toFixed(dp)})</span>`;
+  let h=`<table class="nums"><tr><th>variable</th><th>left chart: ${DATA.eras[state.A.era]}</th><th>right chart: ${DATA.eras[state.B.era]}</th></tr>`;
+  const base=F=>!F.ok?'—':(lin?F.beta[0].toFixed(1)+'%':(100*sig(F.beta[0])).toFixed(1)+'%');
+  h+=`<tr><td>${'base rate (applicant-weighted average school'+(anyBin?', indicators at 0)':')')}</td><td>${base(FA)}</td><td>${base(FB)}</td></tr>`;
+  rows.forEach(r=>{ h+=`<tr><td>${r.s.label}</td><td class="sw">${f(r.a,r.ase)}</td><td class="sw">${f(r.b,r.bse)}</td></tr>`; });
+  d3.select('#coeftable').html(h+'</table>');
+}
+function schoolBox(FA,FB){
+  const box=d3.select('#schoolbox');
+  if(!state.pick){ box.html('<h3>School</h3><div class="empty">Click a dot in either chart, or find a school by name above.</div>'); return; }
+  const side=state.pick.panel;
+  const P=side==='A'?{F:FA,era:state.A.era,lab:'left'}:{F:FB,era:state.B.era,lab:'right'};
+  const F=P.F;
+  const anyRow=ERAKEYS.map(e=>DATA.cells[e].find(r=>r[CI.ceeb]===state.pick.ceeb)).find(Boolean);
+  const nm=anyRow?anyRow[CI.name]:'';
+  if(!F||!F.ok){ box.html(`<h3>School</h3><h4>${nm}</h4><div class="empty">No model in that chart.</div>`); return; }
+  const i=F.use.findIndex(r=>r[CI.ceeb]===state.pick.ceeb);
+  if(i<0){ box.html(`<h3>School</h3><h4>${nm}</h4><div class="empty">Not in the ${P.lab} chart: the school has fewer than 30 usable applicants in ${DATA.eras[P.era]}, or is missing a selected variable.</div>${otherLine(FA,FB,side)}`); return; }
+  const r=F.use[i], pred=F.pred[i], lin=F.model==='lin';
+  let h=`<h3>School, ${P.lab} chart</h3><h4>${r[CI.name]}</h4>
+  <div class="meta">${r[CI.city]||''} · ${GNAMES[r[CI.grp]]} · school code ${r[CI.ceeb]}<br>${DATA.eras[P.era]} · ${r[CI.A].toLocaleString()} applicants · ${r[CI.K].toLocaleString()} admitted${F.fitOn==='out'&&r[CI.grp]<5?' · predicted, not fitted':''}</div>
+  <div class="big3"><div><div class="k">actual</div><div class="n">${r[CI.adm].toFixed(1)}%</div></div>
+  <div><div class="k">predicted</div><div class="n">${pred.toFixed(1)}%</div></div>
+  <div><div class="k">difference</div><div class="n">${fpp(r[CI.adm]-pred)}</div></div></div>
+  <table><tr><td>${lin?'base rate':'base (log-odds)'}</td><td></td><td>${lin?F.beta[0].toFixed(1):F.beta[0].toFixed(2)}</td></tr>`;
+  const x=F.row(r);
+  F.S.forEach((s,j)=>{ const val=s.get(r), z=x[j+1], c=F.beta[j+1]*z;
+    const vs=val==null?'—':(Math.abs(val)>=100?Math.round(val).toLocaleString():+val.toFixed(3));
+    h+=`<tr><td>${s.label}</td><td>${s.bin?(val?'yes':'no'):`${vs} (z ${fpp(z,2)})`}</td><td>${fpp(c,lin?1:2)}</td></tr>`; });
+  const tot=d3.sum(x.map((v,j)=>v*F.beta[j]));
+  h+=lin?`<tr><td>predicted</td><td></td><td><b>${pred.toFixed(1)}%</b></td></tr></table>`
+    :`<tr><td>sum (log-odds)</td><td></td><td>${tot.toFixed(2)}</td></tr><tr><td>predicted rate</td><td></td><td><b>${pred.toFixed(1)}%</b></td></tr></table>`;
+  h+=`<div class="note">Right column: each variable's contribution (coefficient × the school's z-score, or × 1 for a yes on an indicator)${lin?', in percentage points':', in log-odds'}. z is the school's distance from the weighted-average school, in standard deviations.</div>`;
+  h+=otherLine(FA,FB,side);
+  box.html(h);
+}
+function otherLine(FA,FB,side){
+  const O=side==='A'?{F:FB,era:state.B.era,lab:'right'}:{F:FA,era:state.A.era,lab:'left'};
+  if(!O.F||!O.F.ok) return '';
+  const oi=O.F.use.findIndex(x=>x[CI.ceeb]===state.pick.ceeb); if(oi<0) return '';
+  const o=O.F.use[oi];
+  return `<div class="note" style="margin-top:8px">Same school in the ${O.lab} chart (${DATA.eras[O.era]}): actual ${o[CI.adm].toFixed(1)}%, predicted ${O.F.pred[oi].toFixed(1)}%, difference ${fpp(o[CI.adm]-O.F.pred[oi])}.</div>`;
+}
+function hints(FA,rowsA,vars){
+  VARS.forEach(v=>{
+    const el=d3.select('#hint-'+v);
+    if(state.sel.has(v)||!FA.ok||(state.fitOn==='out'&&INAREA.has(v))){ el.text('').classed('big',false); return; }
+    if(v==='gpacurve'&&!state.sel.has('appgpa')){ el.text('').classed('big',false); return; }
+    let add=vars.concat([v]); if(v==='local') add=add.filter(x=>x!=='groups'); if(v==='groups') add=add.filter(x=>x!=='local');
+    const F2=fit(rowsA,add); if(!F2.ok){ el.text('—').classed('big',false); return; }
+    const sub=F2.use.filter(r=>state.fitOn==='all'||r[CI.grp]===5);
+    const Fb=fit(sub,vars.filter(x=>add.includes(x)));
+    const d=F2.r2-(Fb.ok?Fb.r2:0);
+    el.text(fpp(d,3)).classed('big',d>=0.02);
+  });
+}
+
+// ---------- find a school ----------
+const allNames=new Map();
+ERAKEYS.forEach(e=>DATA.cells[e].forEach(r=>{ const k=`${r[CI.name]} (${r[CI.city]})`; if(!allNames.has(k)) allNames.set(k,r[CI.ceeb]); }));
+d3.select('#schoollist').selectAll('option').data([...allNames.keys()].sort()).join('option').attr('value',d=>d);
+document.getElementById('find').addEventListener('change',function(){ const c=allNames.get(this.value); if(c){ state.pick={ceeb:c,panel:'A'}; refreshPick(); } });
+
+// ---------- export ----------
+function panelSVGString(P,scale){
+  const F=P.F, lab=DATA.eras[state[P.which].era];
+  const clone=P.svg.node().cloneNode(true);
+  const title=`UC San Diego admission rates, ${lab}`;
+  const sub=`${F.model==='lin'?'Linear':'Logistic'} model fitted to ${F.fitOn==='out'?'schools outside San Diego and Imperial counties':'all schools'}; variables: ${F.S.map(s=>s.label).join('; ')}`;
+  const stat=`R² = ${F.r2.toFixed(3)}, adjusted ${F.adj.toFixed(3)}, n = ${F.n} schools, typical miss ${F.rmse.toFixed(1)} pp`;
+  const W=PW;
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const wrap=(s,n)=>{ const w=s.split(' '),L=['']; w.forEach(t=>{ if((L[L.length-1]+' '+t).length>n) L.push(t); else L[L.length-1]=(L[L.length-1]+' '+t).trim(); }); return L; };
+  const subL=wrap(sub,80).slice(0,4); const top=44+subL.length*12;
+  clone.removeAttribute('class'); clone.setAttribute('x',0); clone.setAttribute('y',top); clone.setAttribute('width',PW); clone.setAttribute('height',PH);
+  const items=state.color==='grp'?[0,1,2,3,4,5].map(g=>[GCOL[g],GSHORT[g]]):[[GCOL[0],'San Diego and Imperial County'],[GCOL[5],'Rest of California']];
+  let lx=M.l, ly=top+PH+14, leg='';
+  const legRows=(()=>{ let x=M.l,r=1; items.forEach(([c,t])=>{ const w=18+t.length*6.2; if(x+w>W){x=M.l;r++;} x+=w+8; }); return r; })();
+  const H=top+PH+legRows*16+10;
+  items.forEach(([c,t])=>{ const w=18+t.length*6.2; if(lx+w>W){ lx=M.l; ly+=16; }
+    leg+=`<circle cx="${lx+5}" cy="${ly-4}" r="5" fill="${c}"/><text x="${lx+14}" y="${ly}" font-size="10.5" fill="#52514e">${esc(t)}</text>`; lx+=w+8; });
+  const s=`<svg xmlns="http://www.w3.org/2000/svg" width="${W*scale}" height="${H*scale}" viewBox="0 0 ${W} ${H}" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-weight="400" fill="#0b0b0b">
+<rect width="${W}" height="${H}" fill="#fff"/>
+<text x="${M.l}" y="16" font-size="14" font-weight="650">${esc(title)}</text>
+${subL.map((l,i)=>`<text x="${M.l}" y="${31+i*12}" font-size="9.5" fill="#52514e">${esc(l)}</text>`).join('')}
+<text x="${M.l}" y="${31+subL.length*12}" font-size="9.5" fill="#52514e">${esc(stat)}</text>
+${new XMLSerializer().serializeToString(clone)}
+${leg}</svg>`;
+  return s;
+}
+function exportPanel(P,kind){
+  const note=d3.select('#xnote'+P.which);
+  if(!P.F||!P.F.ok){ note.text('Nothing to export.'); return; }
+  const era=DATA.eras[state[P.which].era].replace('–','-');
+  const base=`ucsd_admission_${era}_${state.model}_${state.view}`;
+  const dl=(blob,name)=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); };
+  if(kind==='csv'){
+    const F=P.F; const hdr=['school','city','ceeb','group','applicants','admits','actual_rate','predicted_rate','actual_minus_predicted'];
+    const q=s=>`"${String(s).replace(/"/g,'""')}"`;
+    const lines=[hdr.join(',')].concat(F.use.map((r,i)=>[q(r[CI.name]),q(r[CI.city]),q(r[CI.ceeb]),q(GNAMES[r[CI.grp]]),r[CI.A],r[CI.K],r[CI.adm].toFixed(2),F.pred[i].toFixed(2),(r[CI.adm]-F.pred[i]).toFixed(2)].join(',')));
+    dl(new Blob([lines.join('\n')],{type:'text/csv'}),base+'.csv'); note.text('CSV saved.'); return;
+  }
+  const svgStr=panelSVGString(P,1);
+  if(kind==='svg'){ dl(new Blob([svgStr],{type:'image/svg+xml'}),base+'.svg'); note.text('SVG saved.'); return; }
+  const scale=kind==='png4'?4:2;
+  const img=new Image(); const url=URL.createObjectURL(new Blob([panelSVGString(P,scale)],{type:'image/svg+xml'}));
+  img.onload=()=>{ const c=document.createElement('canvas'); c.width=img.width; c.height=img.height;
+    const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height); ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url); c.toBlob(b=>{ dl(b,base+`_${scale}x.png`); note.text(`PNG at ${scale}× saved.`); },'image/png'); };
+  img.onerror=()=>note.text('Image export failed in this browser; try SVG.');
+  img.src=url;
+}
+
+// ---------- update ----------
+function curVars(){ return VARS.filter(v=>state.sel.has(v)&&!(state.fitOn==='out'&&INAREA.has(v))); }
+function update(){
+  const vars=curVars();
+  const rowsA=DATA.cells[state.A.era], rowsB=DATA.cells[state.B.era];
+  const FA=vars.length?fit(rowsA,vars):{ok:false,n:0,why:'Select at least one variable.'};
+  const FB=vars.length?fit(rowsB,vars):{ok:false,n:0,why:'Select at least one variable.'};
+  drawPanel(PA,FA); drawPanel(PB,FB); legend();
+  if(FA.ok||FB.ok){ grpTable(FA,FB); coefTable(FA,FB); } else { d3.select('#grptable').html(''); d3.select('#coeftable').html(''); }
+  schoolBox(FA,FB); hints(FA,rowsA,vars);
+  window.UCSDPRED={FA,FB,state,groupSummary,fit};
+}
+syncChecks(); update();
+})();
+</script>
+</body>
+</html>
